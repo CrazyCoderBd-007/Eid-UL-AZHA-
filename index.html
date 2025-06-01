@@ -271,7 +271,6 @@
                 console.warn("Background music autoplay was prevented by the browser. User interaction might be needed or audio controls can be used.", error);
             });
 
-            // Function to display the custom greeting
             function showGreeting(message, animate) {
                 customGreetingDiv.textContent = message;
                 customGreetingDiv.style.display = 'block';
@@ -287,31 +286,39 @@
                 } else {
                     customGreetingDiv.style.opacity = '1';
                     customGreetingDiv.style.transform = 'translateY(0)';
-                    customGreetingDiv.style.transition = 'none'; // Ensure no accidental animation
+                    customGreetingDiv.style.transition = 'none'; 
                 }
                 whatsappButton.style.display = 'inline-flex';
             }
 
-            // Check for stored name on page load
             const storedName = localStorage.getItem(storageKey);
             if (storedName) {
                 nameInput.value = storedName;
-                const customMessage = `Eid Mubarak from ${storedName}! 🎉 Wishing you happiness and blessings!`;
-                showGreeting(customMessage, false); // Show immediately, no animation
+                // Only auto-generate greeting if storedName is not "Friend" or if you always want to show it
+                // This prevents showing "Eid Mubarak from Friend!" if they just left it blank last time
+                // and "Friend" was stored.
+                if (storedName !== "Friend" || nameInput.value.trim() !== "") { // Added check to see if input actually has "Friend"
+                     const customMessage = `Eid Mubarak from ${storedName}! 🎉 Wishing you happiness and blessings!`;
+                     showGreeting(customMessage, false);
+                } else if (nameInput.value.trim() === "Friend" && storedName === "Friend") { // If "Friend" was explicitly typed and stored
+                     const customMessage = `Eid Mubarak from ${storedName}! 🎉 Wishing you happiness and blessings!`;
+                     showGreeting(customMessage, false);
+                }
             }
 
 
             generateButton.addEventListener('click', () => {
                 let userName = nameInput.value.trim();
+                
                 if (userName === "") {
+                    alert("No name entered. Generating Eid wish for 'Friend'."); // Alert pop-up
                     userName = "Friend"; 
                 }
 
-                // Save the name to localStorage
                 localStorage.setItem(storageKey, userName);
 
                 const customMessage = `Eid Mubarak from ${userName}! 🎉 Wishing you happiness and blessings!`;
-                showGreeting(customMessage, true); // Show with animation
+                showGreeting(customMessage, true);
             });
 
             whatsappButton.addEventListener('click', () => {
