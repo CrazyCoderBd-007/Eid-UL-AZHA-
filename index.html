@@ -55,8 +55,8 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2), 0 0 40px var(--primary-neon_translucent, rgba(0, 255, 242, 0.1));
             width: 100%;
             max-width: 500px;
-            position: relative; /* For stacking context if needed later */
-            z-index: 1; /* Ensure it's above general body but below modals */
+            position: relative; 
+            z-index: 1; 
         }
 
         #eidImage {
@@ -220,11 +220,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+            background-color: rgba(0, 0, 0, 0.6); 
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
-            z-index: 10000; /* Above ad banner */
-            display: none; /* Hidden by default */
+            z-index: 10000; 
+            display: none; 
             opacity: 0;
             transition: opacity 0.3s ease-out;
         }
@@ -234,7 +234,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.9);
-            background: var(--dark-bg); /* Match body background */
+            background: var(--dark-bg); 
             border: 1px solid var(--primary-neon);
             padding: 25px;
             border-radius: 15px;
@@ -242,8 +242,8 @@
                         0 0 15px var(--secondary-neon_translucent, rgba(255, 0, 193, 0.2));
             width: 90%;
             max-width: 400px;
-            z-index: 10001; /* Above overlay */
-            display: none; /* Hidden by default */
+            z-index: 10001; 
+            display: none; 
             text-align: center;
             opacity: 0;
             transition: opacity 0.3s ease-out, transform 0.3s ease-out;
@@ -256,11 +256,11 @@
             color: var(--light-text);
         }
 
-        #customAlertOkButton { /* Specific styling for OK button if needed */
+        #customAlertOkButton { 
             background: linear-gradient(90deg, var(--primary-neon), var(--secondary-neon));
             color: var(--dark-bg);
             border: none;
-            margin-bottom: 0; /* No bottom margin if it's the only button */
+            margin-bottom: 0; 
         }
         #customAlertOkButton:hover {
              transform: scale(1.05);
@@ -270,14 +270,12 @@
 
         .custom-alert-overlay.visible,
         .custom-alert-box.visible {
-            display: block; /* Or flex/grid if needed for alignment */
+            display: block; 
             opacity: 1;
         }
         .custom-alert-box.visible {
             transform: translate(-50%, -50%) scale(1);
         }
-
-
     </style>
 </head>
 <body>
@@ -299,7 +297,7 @@
 
     <!-- Custom Alert Modal HTML -->
     <div id="customAlertOverlay" class="custom-alert-overlay"></div>
-    <div id="customAlertBox" class="custom-alert-box">
+    <div id="customAlertBox" class="custom-alert-box" data-context="" data-name="">
         <p id="customAlertMessage"></p>
         <button id="customAlertOkButton" class="styled-button">OK</button>
     </div>
@@ -372,13 +370,28 @@
                 showMainGreeting(customMessage, animateGreeting);
             }
 
-            const storedName = localStorage.getItem(storageKey);
-            if (storedName) {
-                nameInput.value = storedName;
-                if (storedName !== "Friend" || nameInput.value.trim() !== "") {
-                     generateAndSaveGreeting(storedName, false); // false for no animation on load
-                } else if (nameInput.value.trim() === "Friend" && storedName === "Friend") {
-                     generateAndSaveGreeting(storedName, false);
+            // Check for name in URL first
+            const urlParams = new URLSearchParams(window.location.search);
+            const nameFromUrlRaw = urlParams.get('name');
+
+            if (nameFromUrlRaw) {
+                const nameFromUrl = decodeURIComponent(nameFromUrlRaw.replace(/\+/g, ' ')).trim();
+                if (nameFromUrl) { // Ensure decoded name is not empty
+                    nameInput.value = nameFromUrl;
+                    showCustomAlert(`An Eid greeting has been prepared for ${nameFromUrl}! Click OK to view.`);
+                    customAlertBox.dataset.context = 'urlName';
+                    customAlertBox.dataset.name = nameFromUrl;
+                }
+            } else {
+                // If no name in URL, check localStorage
+                const storedName = localStorage.getItem(storageKey);
+                if (storedName) {
+                    nameInput.value = storedName;
+                    // Auto-generate only if it's a "real" name, not the default "Friend"
+                    // unless "Friend" was explicitly typed and stored.
+                    if (storedName !== "Friend" || (storedName === "Friend" && nameInput.value.trim() === "Friend")) {
+                         generateAndSaveGreeting(storedName, false); 
+                    }
                 }
             }
 
@@ -387,23 +400,37 @@
                 
                 if (userName === "") {
                     showCustomAlert("No name entered. Your Eid wish will be generated for 'Friend'.");
-                    // The rest of the logic will be handled by the OK button of the custom alert
+                    customAlertBox.dataset.context = 'defaultFriend';
+                    customAlertBox.dataset.name = 'Friend'; // Store "Friend" as the name for this context
                 } else {
-                    generateAndSaveGreeting(userName, true); // true for animation
+                    generateAndSaveGreeting(userName, true); 
                 }
             });
 
             customAlertOkButton.addEventListener('click', () => {
                 hideCustomAlert();
-                const userName = "Friend"; // Set to Friend as per alert's context
-                nameInput.value = "Friend"; // Optionally update the input field
-                generateAndSaveGreeting(userName, true); // true for animation
+                const context = customAlertBox.dataset.context;
+                const nameForGreeting = customAlertBox.dataset.name;
+
+                if (context === 'urlName') {
+                    // nameInput.value is already set from URL processing
+                    generateAndSaveGreeting(nameForGreeting, false); // No animation for pre-filled from URL
+                } else if (context === 'defaultFriend') {
+                    nameInput.value = nameForGreeting; // "Friend"
+                    generateAndSaveGreeting(nameForGreeting, true); // Animate for user action
+                }
+                
+                // Clear data attributes after use
+                customAlertBox.dataset.context = '';
+                customAlertBox.dataset.name = '';
             });
 
             whatsappButton.addEventListener('click', () => {
                 const personalizedMessage = customGreetingDiv.textContent;
-                const pageUrl = window.location.href;
-                const shareText = `${personalizedMessage}\n\nCreate and share your own Eid greeting here: ${pageUrl}`;
+                // Use the current page URL without query parameters for the "Create your own" link
+                // to avoid carrying over the `?name=` param when others create their own.
+                const cleanPageUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                const shareText = `${personalizedMessage}\n\nCreate and share your own Eid greeting here: ${cleanPageUrl}`;
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                 window.open(whatsappUrl, '_blank');
             });
