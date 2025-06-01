@@ -8,9 +8,7 @@
     <!-- Open Graph Meta Tags for WhatsApp & Social Sharing -->
     <meta property="og:title" content="Eid Mubarak! - Create Your Personalized Greeting" />
     <meta property="og:description" content="Create and share beautiful, personalized Eid Mubarak wishes with friends and family. Spread the joy this Eid!" />
-    <meta property="og:image" content="eid.gif" /> 
-    <!-- Note: For og:image, an absolute URL (e.g., https://yourdomain.com/eid.gif) is best for reliability. 
-         Ensure eid.gif is accessible at the same path as index.html or provide the correct full/relative path. -->
+    <meta property="og:image" content="eid.gif" />
     <meta property="og:type" content="website" />
     <!-- End Open Graph Meta Tags -->
 
@@ -219,8 +217,6 @@
             width: 320px; /* Ad width from script */
             height: 50px; /* Ad height from script */
             z-index: 9999; /* Ensure it's on top */
-            /* Optional: background for visibility if ad loads slow or is transparent */
-            /* background-color: rgba(0, 0, 0, 0.1); */ 
         }
 
     </style>
@@ -249,7 +245,6 @@
         Your browser does not support the audio element.
     </audio>
 
-    <!-- Ad Container - Positioned at the bottom, topmost layer via CSS -->
     <div id="adsterra-bottom-banner">
         <script type="text/javascript">
             atOptions = {
@@ -270,10 +265,40 @@
             const customGreetingDiv = document.getElementById('customGreeting');
             const whatsappButton = document.getElementById('whatsappButton');
             const backgroundMusic = document.getElementById('backgroundMusic');
+            const storageKey = 'eidUserName'; // Key for localStorage
 
             backgroundMusic.play().catch(error => {
                 console.warn("Background music autoplay was prevented by the browser. User interaction might be needed or audio controls can be used.", error);
             });
+
+            // Function to display the custom greeting
+            function showGreeting(message, animate) {
+                customGreetingDiv.textContent = message;
+                customGreetingDiv.style.display = 'block';
+                
+                if (animate) {
+                    customGreetingDiv.style.opacity = '0';
+                    customGreetingDiv.style.transform = 'translateY(10px)';
+                    setTimeout(() => {
+                        customGreetingDiv.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                        customGreetingDiv.style.opacity = '1';
+                        customGreetingDiv.style.transform = 'translateY(0)';
+                    }, 50);
+                } else {
+                    customGreetingDiv.style.opacity = '1';
+                    customGreetingDiv.style.transform = 'translateY(0)';
+                    customGreetingDiv.style.transition = 'none'; // Ensure no accidental animation
+                }
+                whatsappButton.style.display = 'inline-flex';
+            }
+
+            // Check for stored name on page load
+            const storedName = localStorage.getItem(storageKey);
+            if (storedName) {
+                nameInput.value = storedName;
+                const customMessage = `Eid Mubarak from ${storedName}! 🎉 Wishing you happiness and blessings!`;
+                showGreeting(customMessage, false); // Show immediately, no animation
+            }
 
 
             generateButton.addEventListener('click', () => {
@@ -282,29 +307,17 @@
                     userName = "Friend"; 
                 }
 
+                // Save the name to localStorage
+                localStorage.setItem(storageKey, userName);
+
                 const customMessage = `Eid Mubarak from ${userName}! 🎉 Wishing you happiness and blessings!`;
-                customGreetingDiv.textContent = customMessage;
-                customGreetingDiv.style.display = 'block'; 
-                
-                customGreetingDiv.style.opacity = '0';
-                customGreetingDiv.style.transform = 'translateY(10px)';
-                setTimeout(() => {
-                    customGreetingDiv.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                    customGreetingDiv.style.opacity = '1';
-                    customGreetingDiv.style.transform = 'translateY(0)';
-                }, 50);
-
-
-                whatsappButton.style.display = 'inline-flex'; 
+                showGreeting(customMessage, true); // Show with animation
             });
 
             whatsappButton.addEventListener('click', () => {
-                const personalizedMessage = customGreetingDiv.textContent; // This is the "Eid Mubarak from User..."
+                const personalizedMessage = customGreetingDiv.textContent;
                 const pageUrl = window.location.href;
-                
-                // Updated share text for better context and call to action
                 const shareText = `${personalizedMessage}\n\nCreate and share your own Eid greeting here: ${pageUrl}`;
-                
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                 
                 window.open(whatsappUrl, '_blank');
