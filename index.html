@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eid Mubarak!</title>
+
+    <!-- Open Graph Meta Tags for WhatsApp & Social Sharing -->
+    <meta property="og:title" content="Eid Mubarak! - Create Your Personalized Greeting" />
+    <meta property="og:description" content="Create and share beautiful, personalized Eid Mubarak wishes with friends and family. Spread the joy this Eid!" />
+    <meta property="og:image" content="eid.gif" /> 
+    <!-- Note: For og:image, an absolute URL (e.g., https://yourdomain.com/eid.gif) is best for reliability. 
+         Ensure eid.gif is accessible at the same path as index.html or provide the correct full/relative path. -->
+    <meta property="og:type" content="website" />
+    <!-- End Open Graph Meta Tags -->
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
@@ -289,9 +299,13 @@
             });
 
             whatsappButton.addEventListener('click', () => {
-                const messageToShare = customGreetingDiv.textContent;
+                const personalizedMessage = customGreetingDiv.textContent; // This is the "Eid Mubarak from User..."
                 const pageUrl = window.location.href;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(messageToShare + " Check this out: " + pageUrl)}`;
+                
+                // Updated share text for better context and call to action
+                const shareText = `${personalizedMessage}\n\nCreate and share your own Eid greeting here: ${pageUrl}`;
+                
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                 
                 window.open(whatsappUrl, '_blank');
             });
